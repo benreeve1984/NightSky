@@ -23,10 +23,6 @@ logger = logging.getLogger("night_sky")
 # Load environment variables
 load_dotenv()
 
-# Create templates directory
-import os
-os.makedirs("templates", exist_ok=True)
-
 # Create static directory if it doesn't exist
 os.makedirs("static", exist_ok=True)
 
@@ -61,8 +57,9 @@ def setup_static_files():
             import shutil
             shutil.copy(src_file, dest_file)
 
-# Setup static files
-setup_static_files()
+# Setup static files - only run locally, not in Vercel
+if not os.environ.get('VERCEL'):
+    setup_static_files()
 
 # Planet data with icon URLs - now using local files
 PLANETS = [
@@ -75,195 +72,6 @@ PLANETS = [
 
 # Set up templates
 templates = Jinja2Templates(directory="templates")
-
-# Create base template
-with open("templates/base.html", "w") as f:
-    f.write("""
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{% block title %}Night Sky Planets{% endblock %}</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
-    <script src="https://unpkg.com/htmx.org@1.9.2"></script>
-    <style>
-        :root {
-            --background-color: #1a1b26;
-            --text-color: #c0caf5;
-            --card-bg: #f5f5f7;
-            --card-text: #2e3440;
-            --card-shadow: rgba(0, 0, 0, 0.1);
-            --header-bg: #2f3546;
-            --header-text: #c0caf5;
-            --accent-color: #7aa2f7;
-            --border-radius: 12px;
-        }
-        
-        body {
-            background-color: var(--background-color);
-            color: var(--text-color);
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, sans-serif;
-            line-height: 1.5;
-        }
-        
-        .header {
-            background-color: var(--header-bg);
-            border-radius: var(--border-radius);
-            padding: 2rem;
-            margin-bottom: 2rem;
-            text-align: center;
-            color: var(--header-text);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        }
-        
-        .header h1 {
-            margin-top: 0;
-            margin-bottom: 0.75rem;
-            font-weight: 700;
-            color: white;
-        }
-        
-        .header p {
-            margin-bottom: 0.5rem;
-            opacity: 0.9;
-        }
-        
-        .header .date {
-            color: white;
-            font-size: 1.1rem;
-            font-weight: 500;
-        }
-        
-        .planet-card {
-            background-color: var(--card-bg);
-            color: var(--card-text);
-            border-radius: var(--border-radius);
-            padding: 1.25rem 1.5rem;
-            margin-bottom: 1.25rem;
-            box-shadow: 0 2px 8px var(--card-shadow);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            border-left: 4px solid var(--accent-color);
-        }
-        
-        .planet-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 12px var(--card-shadow);
-        }
-        
-        .planet-icon {
-            width: 28px;
-            height: 28px;
-            vertical-align: middle;
-            margin-right: 0.75rem;
-        }
-        
-        .planet-info {
-            display: flex;
-            align-items: center;
-        }
-        
-        .planet-name {
-            font-weight: 600;
-            font-size: 1.15rem;
-        }
-        
-        .planet-details {
-            margin-left: auto;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-        }
-        
-        .planet-altitude {
-            font-weight: 700;
-            color: var(--accent-color);
-            font-size: 1.25rem;
-            letter-spacing: -0.5px;
-        }
-        
-        .planet-direction {
-            color: #666;
-            font-size: 0.9rem;
-            margin-top: 0.2rem;
-        }
-
-        .loading {
-            text-align: center;
-            margin: 2.5rem;
-            color: var(--text-color);
-            font-size: 1.1rem;
-        }
-        
-        .container {
-            max-width: 680px;
-            padding: 2.5rem 1.5rem;
-        }
-        
-        .no-planets {
-            background-color: var(--card-bg);
-            color: var(--card-text);
-            border-radius: var(--border-radius);
-            padding: 1.75rem;
-            text-align: center;
-            box-shadow: 0 2px 8px var(--card-shadow);
-            font-size: 1.1rem;
-        }
-    </style>
-</head>
-<body>
-    <main class="container">
-        {% block content %}{% endblock %}
-    </main>
-</body>
-</html>
-    """)
-
-# Create home template
-with open("templates/index.html", "w") as f:
-    f.write("""
-{% extends "base.html" %}
-
-{% block title %}Night Sky Planets{% endblock %}
-
-{% block content %}
-<div>
-    <div class="header">
-        <h1>Tonight's Visible Planets</h1>
-        <p class="date">{{ today }}</p>
-    </div>
-    
-    <div id="planets-container" hx-get="/planets" hx-trigger="load" hx-swap="innerHTML">
-        <div class="loading">
-            <p>Scanning the night sky...</p>
-        </div>
-    </div>
-</div>
-{% endblock %}
-    """)
-
-# Create planets template
-with open("templates/planets.html", "w") as f:
-    f.write("""
-{% if planets %}
-    {% for planet in planets %}
-    <div class="planet-card">
-        <div class="planet-info">
-            <img src="{{ planet.icon }}" class="planet-icon" alt="{{ planet.name }} icon">
-            <span class="planet-name">{{ planet.name }}</span>
-            <div class="planet-details">
-                <span class="planet-altitude">{{ planet.altitude|round(1) }}°</span>
-                <span class="planet-direction">{{ planet.direction }}</span>
-            </div>
-        </div>
-    </div>
-    {% endfor %}
-{% else %}
-    <div class="no-planets">
-        <p>No planets clearly visible tonight.</p>
-    </div>
-{% endif %}
-    """)
 
 def get_compass_direction(azimuth):
     """Convert azimuth in degrees to compass direction (N, NE, E, etc.)"""

@@ -8,6 +8,10 @@
     {
       "src": "static/**",
       "use": "@vercel/static"
+    },
+    {
+      "src": "templates/**",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
@@ -21,6 +25,7 @@
     }
   ],
   "env": {
-    "PYTHONUNBUFFERED": "1"
+    "PYTHONUNBUFFERED": "1",
+    "VERCEL": "1"
   }
 } 
