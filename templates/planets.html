@@ -1,0 +1,20 @@
+
+{% if planets %}
+    {% for planet in planets %}
+    <div class="planet-card">
+        <div class="planet-info">
+            <img src="{{ planet.icon }}" class="planet-icon" alt="{{ planet.name }} icon">
+            <span class="planet-name">{{ planet.name }}</span>
+            <div class="planet-details">
+                <span class="planet-altitude">{{ planet.altitude|round(1) }}°</span>
+                <span class="planet-direction">{{ planet.direction }}</span>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+{% else %}
+    <div class="no-planets">
+        <p>No planets clearly visible tonight.</p>
+    </div>
+{% endif %}
+    

@@ -1,0 +1,20 @@
+
+{% extends "base.html" %}
+
+{% block title %}Night Sky Planets{% endblock %}
+
+{% block content %}
+<div>
+    <div class="header">
+        <h1>Tonight's Visible Planets</h1>
+        <p class="date">{{ today }}</p>
+    </div>
+    
+    <div id="planets-container" hx-get="/planets" hx-trigger="load" hx-swap="innerHTML">
+        <div class="loading">
+            <p>Scanning the night sky...</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+    
